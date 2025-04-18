@@ -4,7 +4,7 @@ import plotly.express as px
 import time
 import random
 
-# ВАЖНО: Ставим первым!
+# ВАЖНО: ставим первым!
 st.set_page_config(page_title="BONDA BI – Отчёт по продажам", layout="wide")
 
 # --- ЛОАДЕР: логотип + фразы ---
@@ -21,11 +21,10 @@ def show_loader():
         "📊 Симулируем эмоции кассира в момент скидки…",
     ]
 
-    # Стили + анимация
+    # CSS стили
     st.markdown("""
         <style>
         .loader-container {
-            position: relative;
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -34,51 +33,48 @@ def show_loader():
         }
         .logo {
             max-width: 300px;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
             opacity: 0;
             animation: fadeIn 1s ease-in-out forwards;
         }
         .fade-text {
-            font-size: 1.2em;
+            font-size: 1.1em;
             color: white;
+            margin-bottom: 16px;
             opacity: 0;
             animation: fadeIn 1s ease-in-out forwards;
-            position: absolute;
-            bottom: 40px;
             text-align: center;
+        }
+        .stProgress > div > div > div > div {
+            background-color: #FF8C00 !important;
         }
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
         }
-        .stProgress > div > div > div > div {
-            background-color: #FF8C00 !important;
-        }
         </style>
     """, unsafe_allow_html=True)
 
-    container = st.empty()
-    phrase_area = st.empty()
-    progress = st.progress(0)
-
-    with container:
-        st.markdown(f"""
+    with st.container():
+        st.markdown("""
             <div class="loader-container">
                 <img src="https://raw.githubusercontent.com/CatchTheNull/BONDA.BI/main/bonda-logo.png" class="logo">
             </div>
         """, unsafe_allow_html=True)
 
-    for i in range(5):
-        phrase = random.choice(phrases)
-        phrase_area.markdown(f"<div class='fade-text'>{phrase}</div>", unsafe_allow_html=True)
-        progress.progress((i + 1) / 5)
-        time.sleep(1)
+        phrase_area = st.empty()
+        progress = st.progress(0)
 
-    container.empty()
-    phrase_area.empty()
-    progress.empty()
+        for i in range(5):
+            phrase = random.choice(phrases)
+            phrase_area.markdown(f"<div class='fade-text'>{phrase}</div>", unsafe_allow_html=True)
+            progress.progress((i + 1) / 5)
+            time.sleep(1)
 
-# Показываем загрузчик 1 раз
+        phrase_area.empty()
+        progress.empty()
+
+# Показываем загрузчик один раз
 if 'loaded' not in st.session_state:
     show_loader()
     st.session_state.loaded = True
