@@ -21,7 +21,7 @@ def show_loader():
         "📊 Симулируем эмоции кассира в момент скидки…",
     ]
 
-    # CSS стили
+    # Стили
     st.markdown("""
         <style>
         .loader-container {
@@ -31,12 +31,6 @@ def show_loader():
             align-items: center;
             justify-content: center;
         }
-        .logo {
-            max-width: 300px;
-            margin-bottom: 20px;
-            opacity: 0;
-            animation: fadeIn 1s ease-in-out forwards;
-        }
         .fade-text {
             font-size: 1.1em;
             color: white;
@@ -44,6 +38,12 @@ def show_loader():
             opacity: 0;
             animation: fadeIn 1s ease-in-out forwards;
             text-align: center;
+        }
+        .logo {
+            max-width: 300px;
+            margin: 20px 0;
+            opacity: 0;
+            animation: fadeIn 1s ease-in-out forwards;
         }
         .stProgress > div > div > div > div {
             background-color: #FF8C00 !important;
@@ -55,24 +55,28 @@ def show_loader():
         </style>
     """, unsafe_allow_html=True)
 
-    with st.container():
+    # Контейнеры
+    container = st.empty()
+    phrase_area = st.empty()
+    progress = st.progress(0)
+
+    with container:
         st.markdown("""
             <div class="loader-container">
+                <div id="phrase-slot"></div>
                 <img src="https://raw.githubusercontent.com/CatchTheNull/BONDA.BI/main/bonda-logo.png" class="logo">
             </div>
         """, unsafe_allow_html=True)
 
-        phrase_area = st.empty()
-        progress = st.progress(0)
+    for i in range(5):
+        phrase = random.choice(phrases)
+        phrase_area.markdown(f"<div class='fade-text'>{phrase}</div>", unsafe_allow_html=True)
+        progress.progress((i + 1) / 5)
+        time.sleep(1)
 
-        for i in range(5):
-            phrase = random.choice(phrases)
-            phrase_area.markdown(f"<div class='fade-text'>{phrase}</div>", unsafe_allow_html=True)
-            progress.progress((i + 1) / 5)
-            time.sleep(1)
-
-        phrase_area.empty()
-        progress.empty()
+    container.empty()
+    phrase_area.empty()
+    progress.empty()
 
 # Показываем загрузчик один раз
 if 'loaded' not in st.session_state:
