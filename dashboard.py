@@ -21,69 +21,57 @@ def show_loader():
         "📊 Симулируем эмоции кассира в момент скидки…",
     ]
 
-    phrase = random.choice(phrases)
-
-    st.markdown(f"""
+    st.markdown("""
         <style>
-        .loader-wrapper {{
-            height: 100vh;
+        .loader-container {
             display: flex;
-            justify-content: center;
-            align-items: center;
             flex-direction: column;
-            position: relative;
-        }}
-        .fade-text {{
-            position: absolute;
-            top: 15%;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .loader-phrase {
             font-size: 1.3em;
             color: white;
-            text-align: center;
+            margin-bottom: 20px;
             animation: fadeIn 1s ease-in-out forwards;
-        }}
-        .logo {{
+        }
+        .loader-logo {
             max-width: 300px;
-            animation: fadeIn 1.2s ease-in-out forwards;
-        }}
-        .progress-bar {{
-            position: absolute;
-            top: 23%;
-            width: 200px;
-            height: 8px;
-            background-color: #333;
-            border-radius: 4px;
-            overflow: hidden;
-        }}
-        .bar-fill {{
-            height: 100%;
-            background-color: #FF8C00;
-            width: 0%;
-            transition: width 1s;
-        }}
-        @keyframes fadeIn {{
-            from {{ opacity: 0; }}
-            to {{ opacity: 1; }}
-        }}
+            margin-bottom: 30px;
+            animation: fadeIn 1.5s ease-in-out forwards;
+        }
+        .stProgress > div > div > div > div {
+            background-color: #FF8C00 !important;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
         </style>
-
-        <div class="loader-wrapper">
-            <div class="fade-text">{phrase}</div>
-            <div class="progress-bar"><div class="bar-fill" id="bar"></div></div>
-            <img src="https://raw.githubusercontent.com/CatchTheNull/BONDA.BI/main/bonda-logo.png" class="logo">
-        </div>
-
-        <script>
-        let i = 0;
-        const fill = document.getElementById('bar');
-        const interval = setInterval(() => {{
-            i++;
-            fill.style.width = (i * 20) + '%';
-            if (i >= 5) clearInterval(interval);
-        }}, 1000);
-        </script>
     """, unsafe_allow_html=True)
 
-    time.sleep(5)
+    phrase_slot = st.empty()
+    logo_slot = st.empty()
+    bar = st.progress(0)
+
+    with phrase_slot.container():
+        st.markdown(f"<div class='loader-phrase'>{random.choice(phrases)}</div>", unsafe_allow_html=True)
+
+    with logo_slot.container():
+        st.markdown(f"""
+            <div class="loader-container">
+                <img src="https://raw.githubusercontent.com/CatchTheNull/BONDA.BI/main/bonda-logo.png" class="loader-logo">
+            </div>
+        """, unsafe_allow_html=True)
+
+    for i in range(5):
+        bar.progress((i + 1) / 5)
+        time.sleep(1)
+
+    phrase_slot.empty()
+    logo_slot.empty()
+    bar.empty()
 # --- ЗАГОЛОВОК ---
 st.title("📊 BI-Дэшборд по продажам")
 
