@@ -20,22 +20,26 @@ if uploaded_file:
     # Фильтры
     col1, col2 = st.columns(2)
     with col1:
-        selected_date = st.selectbox("📅 Выберите дату", sorted(df['date'].unique()))
+        date_options = ["Все даты"] + sorted(df['date'].unique())
+        selected_date = st.selectbox("📅 Выберите дату", date_options)
     with col2:
         all_restaurants = ["Все точки"] + sorted(df['restaurant'].unique())
         selected_restaurant = st.selectbox("🏪 Выберите точку продаж", all_restaurants)
 
-    # Фильтрация данных
-    filtered = df[df['date'] == selected_date]
+    # Фильтрация
+    if selected_date == "Все даты":
+        filtered = df.copy()
+    else:
+        filtered = df[df['date'] == selected_date]
+
     if selected_restaurant != "Все точки":
         filtered = filtered[filtered['restaurant'] == selected_restaurant]
 
-    # Данные для графиков
+    # Группировки для графиков
     total_sum = int(filtered['amount'].sum())
-
     pie_data = filtered.groupby('payment_type')['amount'].sum().reset_index()
     checks_data = filtered.groupby('restaurant')['checks'].sum().reset_index()
-    discounts_data = filtered.groupby('restaurant')['amount'].sum().reset_index()
+    revenue_data = filtered.groupby('restaurant')['amount'].sum().reset_index()
 
     # Визуализация
     st.markdown("### 📈 Визуализация показателей")
@@ -56,7 +60,7 @@ if uploaded_file:
 
     with col3:
         st.subheader("🏷️ Сумма продаж по точкам")
-        fig3 = px.bar(discounts_data, x='restaurant', y='amount', text='amount', color='restaurant')
+        fig3 = px.bar(revenue_data, x='restaurant', y='amount', text='amount', color='restaurant')
         fig3.update_layout(showlegend=False)
         st.plotly_chart(fig3, use_container_width=True)
 
@@ -67,7 +71,6 @@ if uploaded_file:
         'checks': 'sum'
     }).reset_index()
 
-    # Добавим флаги (пример логики)
     def flag(row):
         flags = []
         if row['checks'] < 10:
@@ -77,9 +80,8 @@ if uploaded_file:
         return ", ".join(flags) if flags else "-"
 
     detail['Флаги'] = detail.apply(flag, axis=1)
-
-    # Формат
     detail['amount'] = detail['amount'].apply(lambda x: f"{int(x):,} ₽".replace(",", " "))
+
     st.dataframe(detail.rename(columns={
         'restaurant': 'Точка',
         'amount': 'Выручка',
