@@ -21,57 +21,72 @@ def show_loader():
         "📊 Симулируем эмоции кассира в момент скидки…",
     ]
 
-    st.markdown("""
+    phrase = random.choice(phrases)
+
+    st.markdown(f"""
         <style>
-        .loader-container {
+        .loader-wrapper {{
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
-            height: 100vh;
-        }
-        .loader-phrase {
+            align-items: center;
+            position: relative;
+        }}
+        .fade-text {{
             font-size: 1.3em;
             color: white;
+            text-align: center;
             margin-bottom: 20px;
             animation: fadeIn 1s ease-in-out forwards;
-        }
-        .loader-logo {
-            max-width: 300px;
-            margin-bottom: 30px;
-            animation: fadeIn 1.5s ease-in-out forwards;
-        }
-        .stProgress > div > div > div > div {
-            background-color: #FF8C00 !important;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        }}
+        .brand-text {{
+            font-size: 2em;
+            font-weight: bold;
+            background: linear-gradient(90deg, #FF8C00, #FF4500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-top: 30px;
+            animation: fadeIn 1.4s ease-in-out forwards;
+        }}
+        .progress-bar {{
+            width: 200px;
+            height: 8px;
+            background-color: #333;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }}
+        .bar-fill {{
+            height: 100%;
+            background-color: #FF8C00;
+            width: 0%;
+            transition: width 1s;
+        }}
+        @keyframes fadeIn {{
+            from {{ opacity: 0; }}
+            to {{ opacity: 1; }}
+        }}
         </style>
+
+        <div class="loader-wrapper">
+            <div class="fade-text">{phrase}</div>
+            <div class="progress-bar"><div class="bar-fill" id="bar"></div></div>
+            <div class="brand-text">BONDA.BI</div>
+        </div>
+
+        <script>
+        let i = 0;
+        const fill = document.getElementById('bar');
+        const interval = setInterval(() => {{
+            i++;
+            fill.style.width = (i * 20) + '%';
+            if (i >= 5) clearInterval(interval);
+        }}, 1000);
+        </script>
     """, unsafe_allow_html=True)
 
-    phrase_slot = st.empty()
-    logo_slot = st.empty()
-    bar = st.progress(0)
-
-    with phrase_slot.container():
-        st.markdown(f"<div class='loader-phrase'>{random.choice(phrases)}</div>", unsafe_allow_html=True)
-
-    with logo_slot.container():
-        st.markdown(f"""
-            <div class="loader-container">
-                <img src="https://raw.githubusercontent.com/CatchTheNull/BONDA.BI/main/bonda-logo.png" class="loader-logo">
-            </div>
-        """, unsafe_allow_html=True)
-
-    for i in range(5):
-        bar.progress((i + 1) / 5)
-        time.sleep(1)
-
-    phrase_slot.empty()
-    logo_slot.empty()
-    bar.empty()
+    time.sleep(5)
 # --- ЗАГОЛОВОК ---
 st.title("📊 BI-Дэшборд по продажам")
 
