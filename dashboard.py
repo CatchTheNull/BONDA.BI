@@ -2,10 +2,12 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-st.set_page_config(page_title="Dashboard по продажам", layout="wide")
-st.title("📊 Dashboard по продажам")
+# Настройки страницы
+st.set_page_config(page_title="BONDA BI – Отчёт по продажам", layout="wide")
+st.title("📊 BI-Дэшборд по продажам")
 
-uploaded_file = st.file_uploader("Загрузите Excel-файл отчета из iiko", type=["xlsx"])
+# Загрузка файла
+uploaded_file = st.file_uploader("Загрузите Excel OLAP отчёт", type=["xlsx"])
 if uploaded_file:
     df = pd.read_excel(uploaded_file, skiprows=4)
     df = df[pd.to_datetime(df['Учетный день'], errors='coerce').notna()]
@@ -15,13 +17,74 @@ if uploaded_file:
     df['amount'] = pd.to_numeric(df['amount'], errors='coerce')
     df['checks'] = pd.to_numeric(df['checks'], errors='coerce')
 
-    selected_date = st.selectbox("📅 Выберите дату", sorted(df['date'].unique()))
+    # Фильтры
+    col1, col2 = st.columns(2)
+    with col1:
+        selected_date = st.selectbox("📅 Выберите дату", sorted(df['date'].unique()))
+    with col2:
+        all_restaurants = ["Все точки"] + sorted(df['restaurant'].unique())
+        selected_restaurant = st.selectbox("🏪 Выберите точку продаж", all_restaurants)
+
+    # Фильтрация данных
     filtered = df[df['date'] == selected_date]
+    if selected_restaurant != "Все точки":
+        filtered = filtered[filtered['restaurant'] == selected_restaurant]
 
-    st.subheader("💰 Выручка по типам оплат")
-    revenue = filtered.groupby('payment_type')['amount'].sum().reset_index()
-    st.plotly_chart(px.bar(revenue, x="payment_type", y="amount", title="Выручка"), use_container_width=True)
+    # Данные для графиков
+    total_sum = int(filtered['amount'].sum())
 
-    st.subheader("🧾 Количество чеков по типам оплат")
-    checks = filtered.groupby('payment_type')['checks'].sum().reset_index()
-    st.plotly_chart(px.bar(checks, x="payment_type", y="checks", title="Чеки"), use_container_width=True)
+    pie_data = filtered.groupby('payment_type')['amount'].sum().reset_index()
+    checks_data = filtered.groupby('restaurant')['checks'].sum().reset_index()
+    discounts_data = filtered.groupby('restaurant')['amount'].sum().reset_index()
+
+    # Визуализация
+    st.markdown("### 📈 Визуализация показателей")
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.subheader("💳 Типы оплат")
+        fig = px.pie(pie_data, names='payment_type', values='amount', hole=0.5)
+        fig.update_traces(textinfo='label+percent', hoverinfo="label+value")
+        st.plotly_chart(fig, use_container_width=True)
+        st.markdown(f"#### 💰 {total_sum:,.0f} ₽")
+
+    with col2:
+        st.subheader("🧾 Количество чеков")
+        fig2 = px.bar(checks_data, x='restaurant', y='checks', text='checks', color='restaurant')
+        fig2.update_layout(showlegend=False)
+        st.plotly_chart(fig2, use_container_width=True)
+
+    with col3:
+        st.subheader("🏷️ Сумма продаж по точкам")
+        fig3 = px.bar(discounts_data, x='restaurant', y='amount', text='amount', color='restaurant')
+        fig3.update_layout(showlegend=False)
+        st.plotly_chart(fig3, use_container_width=True)
+
+    # Детализация
+    st.markdown("### 📄 Детализация по точкам")
+    detail = filtered.groupby('restaurant').agg({
+        'amount': 'sum',
+        'checks': 'sum'
+    }).reset_index()
+
+    # Добавим флаги (пример логики)
+    def flag(row):
+        flags = []
+        if row['checks'] < 10:
+            flags.append("Мало чеков")
+        if row['amount'] < 100:
+            flags.append("Низкая выручка")
+        return ", ".join(flags) if flags else "-"
+
+    detail['Флаги'] = detail.apply(flag, axis=1)
+
+    # Формат
+    detail['amount'] = detail['amount'].apply(lambda x: f"{int(x):,} ₽".replace(",", " "))
+    st.dataframe(detail.rename(columns={
+        'restaurant': 'Точка',
+        'amount': 'Выручка',
+        'checks': 'Чеки'
+    }), use_container_width=True)
+
+    # Выгрузка
+    st.download_button("📥 Выгрузить таблицу в Excel", data=detail.to_csv(index=False).encode('utf-8'), file_name="report.csv", mime="text/csv")
