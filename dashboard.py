@@ -1,12 +1,66 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import time
+import random
 
-# Настройки страницы
+# --- ЛОАДЕР: логотип + фразы ---
+def show_loader():
+    phrases = [
+        "👨‍🍳 Генерируем повара-гения…",
+        "📈 Строим графики из соуса демиглас…",
+        "💡 Симулируем инсайты как в топовой франшизе...",
+        "🥂 Рассчитываем ROI для бокала Просекко…",
+        "🧠 Наблюдаем за очень умным BI-аналитиком...",
+        "🍽️ Подгружаем лучшие практики из Michelin…",
+        "💰 Моделируем выручку с учётом отмен и чаевых...",
+        "🔍 Складываем чеки как Lego…",
+        "📊 Симулируем эмоции кассира в момент скидки…",
+    ]
+    
+    selected_phrase = random.choice(phrases)
+
+    # Стили
+    st.markdown("""
+        <style>
+        .loader-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 90vh;
+        }
+        .logo {
+            max-width: 300px;
+            margin-bottom: 40px;
+        }
+        .loader-text {
+            font-size: 1.4em;
+            color: white;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown(f"""
+        <div class="loader-container">
+            <img src="https://raw.githubusercontent.com/CatchTheNull/BONDA.BI/main/bonda-logo.png" class="logo">
+            <div class="loader-text">{selected_phrase}</div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    with st.spinner("Загрузка дашборда..."):
+        time.sleep(5)
+
+# Показываем загрузчик 1 раз
+if 'loaded' not in st.session_state:
+    show_loader()
+    st.session_state.loaded = True
+
+# --- НАСТРОЙКИ СТРАНИЦЫ ---
 st.set_page_config(page_title="BONDA BI – Отчёт по продажам", layout="wide")
 st.title("📊 BI-Дэшборд по продажам")
 
-# Загрузка файла
+# --- ЗАГРУЗКА ФАЙЛА ---
 uploaded_file = st.file_uploader("Загрузите Excel OLAP отчёт", type=["xlsx"])
 if uploaded_file:
     df = pd.read_excel(uploaded_file, skiprows=4)
@@ -17,7 +71,7 @@ if uploaded_file:
     df['amount'] = pd.to_numeric(df['amount'], errors='coerce')
     df['checks'] = pd.to_numeric(df['checks'], errors='coerce')
 
-    # Фильтры
+    # ФИЛЬТРЫ
     col1, col2 = st.columns(2)
     with col1:
         date_options = ["Все даты"] + sorted(df['date'].unique())
@@ -26,7 +80,7 @@ if uploaded_file:
         all_restaurants = ["Все точки"] + sorted(df['restaurant'].unique())
         selected_restaurant = st.selectbox("🏪 Выберите точку продаж", all_restaurants)
 
-    # Фильтрация
+    # ФИЛЬТРАЦИЯ
     if selected_date == "Все даты":
         filtered = df.copy()
     else:
@@ -35,13 +89,13 @@ if uploaded_file:
     if selected_restaurant != "Все точки":
         filtered = filtered[filtered['restaurant'] == selected_restaurant]
 
-    # Группировки для графиков
+    # ДАННЫЕ ДЛЯ ГРАФИКОВ
     total_sum = int(filtered['amount'].sum())
     pie_data = filtered.groupby('payment_type')['amount'].sum().reset_index()
     checks_data = filtered.groupby('restaurant')['checks'].sum().reset_index()
     revenue_data = filtered.groupby('restaurant')['amount'].sum().reset_index()
 
-    # Визуализация
+    # ВИЗУАЛИЗАЦИЯ
     st.markdown("### 📈 Визуализация показателей")
     col1, col2, col3 = st.columns(3)
 
@@ -64,7 +118,7 @@ if uploaded_file:
         fig3.update_layout(showlegend=False)
         st.plotly_chart(fig3, use_container_width=True)
 
-    # Детализация
+    # ТАБЛИЦА
     st.markdown("### 📄 Детализация по точкам")
     detail = filtered.groupby('restaurant').agg({
         'amount': 'sum',
@@ -88,5 +142,4 @@ if uploaded_file:
         'checks': 'Чеки'
     }), use_container_width=True)
 
-    # Выгрузка
     st.download_button("📥 Выгрузить таблицу в Excel", data=detail.to_csv(index=False).encode('utf-8'), file_name="report.csv", mime="text/csv")
