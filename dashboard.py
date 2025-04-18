@@ -21,63 +21,69 @@ def show_loader():
         "📊 Симулируем эмоции кассира в момент скидки…",
     ]
 
-    # CSS стили
-    st.markdown("""
+    phrase = random.choice(phrases)
+
+    st.markdown(f"""
         <style>
-        .loader-wrapper {
-            position: relative;
+        .loader-wrapper {{
             height: 100vh;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            justify-content: flex-start;
-            padding-top: 120px;
-        }
-        .fade-text {
-            font-size: 1.2em;
+            flex-direction: column;
+            position: relative;
+        }}
+        .fade-text {{
+            position: absolute;
+            top: 15%;
+            font-size: 1.3em;
             color: white;
-            margin-bottom: 16px;
-            animation: fadeIn 1s ease-in-out forwards;
             text-align: center;
-        }
-        .logo {
-            max-width: 300px;
-            opacity: 0;
             animation: fadeIn 1s ease-in-out forwards;
-        }
-        .stProgress > div > div > div > div {
-            background-color: #FF8C00 !important;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        }}
+        .logo {{
+            max-width: 300px;
+            animation: fadeIn 1.2s ease-in-out forwards;
+        }}
+        .progress-bar {{
+            position: absolute;
+            top: 23%;
+            width: 200px;
+            height: 8px;
+            background-color: #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }}
+        .bar-fill {{
+            height: 100%;
+            background-color: #FF8C00;
+            width: 0%;
+            transition: width 1s;
+        }}
+        @keyframes fadeIn {{
+            from {{ opacity: 0; }}
+            to {{ opacity: 1; }}
+        }}
         </style>
+
+        <div class="loader-wrapper">
+            <div class="fade-text">{phrase}</div>
+            <div class="progress-bar"><div class="bar-fill" id="bar"></div></div>
+            <img src="https://raw.githubusercontent.com/CatchTheNull/BONDA.BI/main/bonda-logo.png" class="logo">
+        </div>
+
+        <script>
+        let i = 0;
+        const fill = document.getElementById('bar');
+        const interval = setInterval(() => {{
+            i++;
+            fill.style.width = (i * 20) + '%';
+            if (i >= 5) clearInterval(interval);
+        }}, 1000);
+        </script>
     """, unsafe_allow_html=True)
 
-    # Контейнеры
-    wrapper = st.empty()
-    phrase_slot = st.empty()
-    progress = st.progress(0)
-
-    with wrapper:
-        st.markdown("""
-            <div class="loader-wrapper">
-                <img src="https://raw.githubusercontent.com/CatchTheNull/BONDA.BI/main/bonda-logo.png" class="logo">
-            </div>
-        """, unsafe_allow_html=True)
-
-    for i in range(5):
-        phrase = random.choice(phrases)
-        phrase_slot.markdown(f"<div class='fade-text'>{phrase}</div>", unsafe_allow_html=True)
-        progress.progress((i + 1) / 5)
-        time.sleep(1)
-
-    # Очистка
-    wrapper.empty()
-    phrase_slot.empty()
-    progress.empty()
-
+    time.sleep(5)
 # --- ЗАГОЛОВОК ---
 st.title("📊 BI-Дэшборд по продажам")
 
