@@ -21,29 +21,29 @@ def show_loader():
         "📊 Симулируем эмоции кассира в момент скидки…",
     ]
 
+    # CSS стили
     st.markdown("""
         <style>
-        .loader-container {
+        .loader-wrapper {
+            position: relative;
             height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            padding-top: 100px;
+            padding-top: 120px;
         }
         .fade-text {
-            font-size: 1.1em;
+            font-size: 1.2em;
             color: white;
             margin-bottom: 16px;
-            opacity: 0;
             animation: fadeIn 1s ease-in-out forwards;
             text-align: center;
         }
         .logo {
             max-width: 300px;
-            margin-top: 40px;
             opacity: 0;
-            animation: fadeIn 1.5s ease-in-out forwards;
+            animation: fadeIn 1s ease-in-out forwards;
         }
         .stProgress > div > div > div > div {
             background-color: #FF8C00 !important;
@@ -55,56 +55,28 @@ def show_loader():
         </style>
     """, unsafe_allow_html=True)
 
-    container = st.container()
-    phrase_area = st.empty()
-    progress = st.progress(0)
-
-    with container:
-        phrase_area.markdown(f"<div class='fade-text'></div>", unsafe_allow_html=True)
-        st.markdown(f"""
-            <div class="loader-container">
-                <div id="phrase"></div>
-                <img src="https://raw.githubusercontent.com/CatchTheNull/BONDA.BI/main/bonda-logo.png" class="logo">
-            </div>
-        """, unsafe_allow_html=True)
-
-    for i in range(5):
-        phrase = random.choice(phrases)
-        phrase_area.markdown(f"<div class='fade-text'>{phrase}</div>", unsafe_allow_html=True)
-        progress.progress((i + 1) / 5)
-        time.sleep(1)
-
-    phrase_area.empty()
-    progress.empty()
-    container.empty()
-
     # Контейнеры
-    container = st.empty()
-    phrase_area = st.empty()
+    wrapper = st.empty()
+    phrase_slot = st.empty()
     progress = st.progress(0)
 
-    with container:
+    with wrapper:
         st.markdown("""
-            <div class="loader-container">
-                <div id="phrase-slot"></div>
+            <div class="loader-wrapper">
                 <img src="https://raw.githubusercontent.com/CatchTheNull/BONDA.BI/main/bonda-logo.png" class="logo">
             </div>
         """, unsafe_allow_html=True)
 
     for i in range(5):
         phrase = random.choice(phrases)
-        phrase_area.markdown(f"<div class='fade-text'>{phrase}</div>", unsafe_allow_html=True)
+        phrase_slot.markdown(f"<div class='fade-text'>{phrase}</div>", unsafe_allow_html=True)
         progress.progress((i + 1) / 5)
         time.sleep(1)
 
-    container.empty()
-    phrase_area.empty()
+    # Очистка
+    wrapper.empty()
+    phrase_slot.empty()
     progress.empty()
-
-# Показываем загрузчик один раз
-if 'loaded' not in st.session_state:
-    show_loader()
-    st.session_state.loaded = True
 
 # --- ЗАГОЛОВОК ---
 st.title("📊 BI-Дэшборд по продажам")
