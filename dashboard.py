@@ -17,10 +17,8 @@ def show_loader():
         "🔍 Складываем чеки как Lego…",
         "📊 Симулируем эмоции кассира в момент скидки…",
     ]
-    
-    selected_phrase = random.choice(phrases)
 
-    # Стили
+    # Стили + анимация
     st.markdown("""
         <style>
         .loader-container {
@@ -28,28 +26,56 @@ def show_loader():
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 90vh;
+            height: 85vh;
         }
         .logo {
-            max-width: 300px;
-            margin-bottom: 40px;
-        }
-        .loader-text {
-            font-size: 1.4em;
+    max-width: 300px;
+    margin-bottom: 40px;
+    opacity: 0;
+    animation: fadeIn 1s ease-in-out forwards;
+}
+        .fade-text {
+            font-size: 1.2em;
             color: white;
+            margin-top: 20px;
+            opacity: 0;
+            animation: fadeIn 1s ease-in-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .stProgress > div > div > div > div {
+            background-color: #FF8C00 !important;
         }
         </style>
     """, unsafe_allow_html=True)
 
-    st.markdown(f"""
-        <div class="loader-container">
-            <img src="https://raw.githubusercontent.com/CatchTheNull/BONDA.BI/main/bonda-logo.png" class="logo">
-            <div class="loader-text">{selected_phrase}</div>
-        </div>
-    """, unsafe_allow_html=True)
+    container = st.empty()
+    phrase_area = st.empty()
+    progress = st.progress(0)
 
-    with st.spinner("Загрузка дашборда..."):
-        time.sleep(5)
+    with container:
+        st.markdown(f"""
+            <div class="loader-container">
+                <img src="https://raw.githubusercontent.com/CatchTheNull/BONDA.BI/main/bonda-logo.png" class="logo">
+            </div>
+        """, unsafe_allow_html=True)
+
+    for i in range(5):
+        phrase = random.choice(phrases)
+        phrase_area.markdown(f"<div class='fade-text'>{phrase}</div>", unsafe_allow_html=True)
+        progress.progress((i + 1) / 5)
+        time.sleep(1)
+
+    container.empty()
+    phrase_area.empty()
+    progress.empty()
+
+    # Очистка экрана загрузки
+    container.empty()
+    phrase_area.empty()
+    progress.empty()
 
 # Показываем загрузчик 1 раз
 if 'loaded' not in st.session_state:
