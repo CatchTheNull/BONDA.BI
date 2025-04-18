@@ -21,7 +21,6 @@ def show_loader():
         "📊 Симулируем эмоции кассира в момент скидки…",
     ]
 
-    # Стили
     st.markdown("""
         <style>
         .loader-container {
@@ -29,7 +28,8 @@ def show_loader():
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
+            padding-top: 100px;
         }
         .fade-text {
             font-size: 1.1em;
@@ -41,9 +41,9 @@ def show_loader():
         }
         .logo {
             max-width: 300px;
-            margin: 20px 0;
+            margin-top: 40px;
             opacity: 0;
-            animation: fadeIn 1s ease-in-out forwards;
+            animation: fadeIn 1.5s ease-in-out forwards;
         }
         .stProgress > div > div > div > div {
             background-color: #FF8C00 !important;
@@ -54,6 +54,29 @@ def show_loader():
         }
         </style>
     """, unsafe_allow_html=True)
+
+    container = st.container()
+    phrase_area = st.empty()
+    progress = st.progress(0)
+
+    with container:
+        phrase_area.markdown(f"<div class='fade-text'></div>", unsafe_allow_html=True)
+        st.markdown(f"""
+            <div class="loader-container">
+                <div id="phrase"></div>
+                <img src="https://raw.githubusercontent.com/CatchTheNull/BONDA.BI/main/bonda-logo.png" class="logo">
+            </div>
+        """, unsafe_allow_html=True)
+
+    for i in range(5):
+        phrase = random.choice(phrases)
+        phrase_area.markdown(f"<div class='fade-text'>{phrase}</div>", unsafe_allow_html=True)
+        progress.progress((i + 1) / 5)
+        time.sleep(1)
+
+    phrase_area.empty()
+    progress.empty()
+    container.empty()
 
     # Контейнеры
     container = st.empty()
