@@ -4,6 +4,9 @@ import plotly.express as px
 import time
 import random
 
+# ВАЖНО: Ставим первым!
+st.set_page_config(page_title="BONDA BI – Отчёт по продажам", layout="wide")
+
 # --- ЛОАДЕР: логотип + фразы ---
 def show_loader():
     phrases = [
@@ -22,24 +25,27 @@ def show_loader():
     st.markdown("""
         <style>
         .loader-container {
+            position: relative;
+            height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 85vh;
         }
         .logo {
-    max-width: 300px;
-    margin-bottom: 40px;
-    opacity: 0;
-    animation: fadeIn 1s ease-in-out forwards;
-}
+            max-width: 300px;
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: fadeIn 1s ease-in-out forwards;
+        }
         .fade-text {
             font-size: 1.2em;
             color: white;
-            margin-top: 20px;
             opacity: 0;
             animation: fadeIn 1s ease-in-out forwards;
+            position: absolute;
+            bottom: 40px;
+            text-align: center;
         }
         @keyframes fadeIn {
             from { opacity: 0; }
@@ -72,18 +78,12 @@ def show_loader():
     phrase_area.empty()
     progress.empty()
 
-    # Очистка экрана загрузки
-    container.empty()
-    phrase_area.empty()
-    progress.empty()
-
 # Показываем загрузчик 1 раз
 if 'loaded' not in st.session_state:
     show_loader()
     st.session_state.loaded = True
 
-# --- НАСТРОЙКИ СТРАНИЦЫ ---
-st.set_page_config(page_title="BONDA BI – Отчёт по продажам", layout="wide")
+# --- ЗАГОЛОВОК ---
 st.title("📊 BI-Дэшборд по продажам")
 
 # --- ЗАГРУЗКА ФАЙЛА ---
@@ -168,4 +168,5 @@ if uploaded_file:
         'checks': 'Чеки'
     }), use_container_width=True)
 
+    # ВЫГРУЗКА
     st.download_button("📥 Выгрузить таблицу в Excel", data=detail.to_csv(index=False).encode('utf-8'), file_name="report.csv", mime="text/csv")
