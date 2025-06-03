@@ -1,47 +1,50 @@
-# auth_handler.py
 import os
 import random
-import smtplib
-from dotenv import load_dotenv
+import requests
 import streamlit as st
-from email.mime.text import MIMEText
+from dotenv import load_dotenv
 
 # --- Загрузка .env ---
 load_dotenv()
-SMTP_SERVER = "smtp.yandex.ru"
-SMTP_PORT = 587
-SMTP_USER = os.getenv("SMTP_USERNAME")
-SMTP_PASS = os.getenv("SMTP_PASSWORD")
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 
-# --- Генерация кода ---
+# --- Генерация 6-значного кода ---
 def generate_code():
     return str(random.randint(100000, 999999))
 
-# --- Отправка кода ---
+# --- Отправка письма через Resend ---
 def send_code(email: str, code: str):
-    message = MIMEText(f"Ваш код подтверждения: {code}")
-    message['Subject'] = "Код подтверждения BONDA.BIZ"
-    message['From'] = SMTP_USER
-    message['To'] = email
+    url = "https://api.resend.com/emails"
+    headers = {
+        "Authorization": f"Bearer {RESEND_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "from": "you@resend.dev",
+        "to": [email],
+        "subject": "Код подтверждения BONDA.BIZ",
+        "html": f"<p>Ваш код подтверждения: <b>{code}</b></p>"
+    }
 
     try:
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASS)
-            server.sendmail(SMTP_USER, email, message.as_string())
-        st.success(f"Код отправлен на {email}")
+        response = requests.post(url, headers=headers, json=data)
+        if response.status_code == 200:
+            st.success(f"📤 Код отправлен на {email}")
+        else:
+            st.error("❌ Ошибка отправки письма")
+            st.json(response.json())
     except Exception as e:
-        st.error("❌ Ошибка отправки письма")
+        st.error("❌ Ошибка при соединении с Resend")
         st.exception(e)
 
-# --- Авторизация ---
+# --- Авторизация по email ---
 def email_auth():
     st.subheader("🔐 Авторизация по email")
 
     if 'email_sent' not in st.session_state:
         st.session_state.email_sent = False
 
-    email = st.text_input("Введите email")
+    email = st.text_input("Введите email", value="mkmatveev@gmail.com")
 
     if not st.session_state.email_sent and st.button("📤 Отправить код") and email:
         code = generate_code()
