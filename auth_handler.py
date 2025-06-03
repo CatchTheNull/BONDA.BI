@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 # --- Загрузка .env ---
 load_dotenv()
-RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+RESEND_API_KEY = os.getenv("re_Cav7CHtK_CGv6WwaPmJVqU7wfwF9Kc9R4")
 
 # --- Генерация 6-значного кода ---
 def generate_code():
