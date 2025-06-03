@@ -43,7 +43,7 @@ def send_code(email: str, code: str):
         st.exception(e)
 
 # --- Авторизация по email ---
-d# --- Авторизация по email ---
+# --- Авторизация по email ---
 def email_auth():
     st.subheader("🔐 Авторизация по email")
 
