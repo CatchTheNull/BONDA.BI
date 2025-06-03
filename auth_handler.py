@@ -1,3 +1,5 @@
+# auth_handler.py
+
 import os
 import random
 import requests
@@ -14,6 +16,10 @@ def generate_code():
 
 # --- Отправка письма через Resend ---
 def send_code(email: str, code: str):
+    if email != "mkmatveev@gmail.com":
+        st.warning("❗️На бесплатном тарифе Resend разрешена отправка только на email, указанный при регистрации (mkmatveev@gmail.com)")
+        return
+
     url = "https://api.resend.com/emails"
     headers = {
         "Authorization": f"Bearer {RESEND_API_KEY}",
