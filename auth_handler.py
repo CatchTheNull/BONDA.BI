@@ -11,7 +11,7 @@ SMTP_USER = os.getenv("SMTP_USERNAME")
 SMTP_PASS = os.getenv("SMTP_PASSWORD")
 
 # --- Инициализация SMTP клиента ---
-yag = yagmail.SMTP(SMTP_USER, SMTP_PASS, oauth2_file=False)
+yag = yagmail.SMTP(user=SMTP_USER, password=SMTP_PASS, oauth2_file=None)
 
 # --- Генерация 6-значного кода ---
 def generate_code():
