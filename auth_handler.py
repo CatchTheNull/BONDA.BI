@@ -46,9 +46,12 @@ def send_code(email: str, code: str):
 def email_auth():
     st.subheader("🔐 Авторизация по email")
 
-    # Ввод API ключа, если ещё не введён
-    if "resend_api_key" not in st.session_state:
-        st.session_state.resend_api_key = st.text_input("🔑 Введите Resend API Key", type="password")
+    # Ввод API ключа, с автоматической перезагрузкой
+    if "resend_api_key" not in st.session_state or not st.session_state.resend_api_key:
+        api_key_input = st.text_input("🔑 Введите Resend API Key", type="password")
+        if api_key_input:
+            st.session_state.resend_api_key = api_key_input
+            st.rerun()  # обновляем скрипт
         st.stop()
 
     if 'email_sent' not in st.session_state:
