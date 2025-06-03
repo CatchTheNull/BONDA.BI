@@ -1,14 +1,8 @@
 # auth_handler.py
 
-import os
 import random
 import requests
 import streamlit as st
-from dotenv import load_dotenv
-
-# --- Загрузка .env ---
-load_dotenv()
-RESEND_API_KEY = os.getenv("re_Cav7CHtK_CGv6WwaPmJVqU7wfwF9Kc9R4")
 
 # --- Генерация 6-значного кода ---
 def generate_code():
@@ -16,13 +10,18 @@ def generate_code():
 
 # --- Отправка письма через Resend ---
 def send_code(email: str, code: str):
-    if email != "mkmatveev@gmail.com":
-        st.warning("❗️На бесплатном тарифе Resend разрешена отправка только на email, указанный при регистрации (mkmatveev@gmail.com)")
+    api_key = st.session_state.get("resend_api_key")
+
+    if not api_key:
+        st.error("❌ API ключ Resend не задан.")
         return
 
-    url = "https://api.resend.com/emails"
+    if email != "mkmatveev@gmail.com":
+        st.warning("❗️На бесплатном тарифе Resend разрешена отправка только на mkmatveev@gmail.com")
+        return
+
     headers = {
-        "Authorization": f"Bearer {RESEND_API_KEY}",
+        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
     data = {
@@ -33,7 +32,7 @@ def send_code(email: str, code: str):
     }
 
     try:
-        response = requests.post(url, headers=headers, json=data)
+        response = requests.post("https://api.resend.com/emails", headers=headers, json=data)
         if response.status_code == 200:
             st.success(f"📤 Код отправлен на {email}")
         else:
@@ -46,6 +45,11 @@ def send_code(email: str, code: str):
 # --- Авторизация по email ---
 def email_auth():
     st.subheader("🔐 Авторизация по email")
+
+    # Ввод API ключа
+    if "resend_api_key" not in st.session_state:
+        st.session_state.resend_api_key = st.text_input("Введите Resend API Key", type="password")
+        st.stop()
 
     if 'email_sent' not in st.session_state:
         st.session_state.email_sent = False
