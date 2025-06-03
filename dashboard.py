@@ -7,7 +7,13 @@ import random
 # ВАЖНО: ставим первым!
 st.set_page_config(page_title="BONDA BI – Отчёт по продажам", layout="wide")
 
-# --- ЛОАДЕР: логотип + фразы ---
+# --- Авторизация ---
+from auth_handler import email_auth
+if not st.session_state.get("authenticated"):
+    email_auth()
+    st.stop()
+
+# --- ЛОАДЕР ---
 def show_loader():
     phrases = [
         "👨‍🍳 Генерируем повара-гения…",
@@ -20,9 +26,7 @@ def show_loader():
         "🔍 Складываем чеки как Lego…",
         "📊 Симулируем эмоции кассира в момент скидки…",
     ]
-
     phrase = random.choice(phrases)
-
     st.markdown(f"""
         <style>
         .loader-wrapper {{
@@ -68,13 +72,11 @@ def show_loader():
             to {{ opacity: 1; }}
         }}
         </style>
-
         <div class="loader-wrapper">
             <div class="fade-text">{phrase}</div>
             <div class="progress-bar"><div class="bar-fill" id="bar"></div></div>
             <div class="brand-text">BONDA.BI</div>
         </div>
-
         <script>
         let i = 0;
         const fill = document.getElementById('bar');
@@ -85,12 +87,15 @@ def show_loader():
         }}, 1000);
         </script>
     """, unsafe_allow_html=True)
-
     time.sleep(5)
-# --- ЗАГОЛОВОК ---
+
+# --- Лоадер ---
+show_loader()
+
+# --- Заголовок ---
 st.title("📊 BI-Дэшборд по продажам")
 
-# --- ЗАГРУЗКА ФАЙЛА ---
+# --- Загрузка файла ---
 uploaded_file = st.file_uploader("Загрузите Excel OLAP отчёт", type=["xlsx"])
 if uploaded_file:
     df = pd.read_excel(uploaded_file, skiprows=4)
@@ -101,7 +106,7 @@ if uploaded_file:
     df['amount'] = pd.to_numeric(df['amount'], errors='coerce')
     df['checks'] = pd.to_numeric(df['checks'], errors='coerce')
 
-    # ФИЛЬТРЫ
+    # --- Фильтры ---
     col1, col2 = st.columns(2)
     with col1:
         date_options = ["Все даты"] + sorted(df['date'].unique())
@@ -110,7 +115,7 @@ if uploaded_file:
         all_restaurants = ["Все точки"] + sorted(df['restaurant'].unique())
         selected_restaurant = st.selectbox("🏪 Выберите точку продаж", all_restaurants)
 
-    # ФИЛЬТРАЦИЯ
+    # --- Фильтрация ---
     if selected_date == "Все даты":
         filtered = df.copy()
     else:
@@ -119,13 +124,13 @@ if uploaded_file:
     if selected_restaurant != "Все точки":
         filtered = filtered[filtered['restaurant'] == selected_restaurant]
 
-    # ДАННЫЕ ДЛЯ ГРАФИКОВ
+    # --- Подготовка данных ---
     total_sum = int(filtered['amount'].sum())
     pie_data = filtered.groupby('payment_type')['amount'].sum().reset_index()
     checks_data = filtered.groupby('restaurant')['checks'].sum().reset_index()
     revenue_data = filtered.groupby('restaurant')['amount'].sum().reset_index()
 
-    # ВИЗУАЛИЗАЦИЯ
+    # --- Графики ---
     st.markdown("### 📈 Визуализация показателей")
     col1, col2, col3 = st.columns(3)
 
@@ -148,7 +153,7 @@ if uploaded_file:
         fig3.update_layout(showlegend=False)
         st.plotly_chart(fig3, use_container_width=True)
 
-    # ТАБЛИЦА
+    # --- Таблица ---
     st.markdown("### 📄 Детализация по точкам")
     detail = filtered.groupby('restaurant').agg({
         'amount': 'sum',
@@ -172,5 +177,5 @@ if uploaded_file:
         'checks': 'Чеки'
     }), use_container_width=True)
 
-    # ВЫГРУЗКА
+    # --- Выгрузка ---
     st.download_button("📥 Выгрузить таблицу в Excel", data=detail.to_csv(index=False).encode('utf-8'), file_name="report.csv", mime="text/csv")

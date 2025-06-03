@@ -30,21 +30,31 @@ def send_code(email: str, code: str):
 
 # --- Основной метод авторизации ---
 def email_auth():
-    st.subheader("🔐 Авторизация по email")
+    st.subheader("🔐 Авторизация")
 
-    email = st.text_input("Введите email")
+    if "code_sent" not in st.session_state:
+        st.session_state.code_sent = False
 
-    if st.button("📤 Отправить код") and email:
-        code = generate_code()
-        send_code(email, code)
-        st.session_state.verification_code = code
-        st.session_state.entered_email = email
+    if not st.session_state.code_sent:
+        email = st.text_input("Введите ваш email")
+        if st.button("📤 Отправить код") and email:
+            code = generate_code()
+            st.session_state.verification_code = code
+            st.session_state.entered_email = email
+            send_code(email, code)
+            st.session_state.code_sent = True
+            st.experimental_rerun()
 
-    if "verification_code" in st.session_state:
+    else:
         code_input = st.text_input("Введите код из письма")
-        if code_input:
-            if code_input == st.session_state.verification_code:
+        if st.button("✅ Подтвердить"):
+            if code_input == st.session_state.get("verification_code"):
                 st.success("✅ Авторизация успешна")
-                st.session_state.logged_in = True
+                st.session_state.authenticated = True
+                # Сбросить состояние после успешной авторизации
+                st.session_state.code_sent = False
             else:
-                st.error("❌ Неверный код")
+                st.error("❌ Неверный код. Попробуйте ещё раз.")
+                if st.button("🔁 Отправить заново"):
+                    st.session_state.code_sent = False
+                    st.experimental_rerun()
