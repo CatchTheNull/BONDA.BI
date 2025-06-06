@@ -4,24 +4,21 @@ import random
 import requests
 import streamlit as st
 
+# --- ЖЁСТКО ЗАДАННЫЙ API KEY ---
+RESEND_API_KEY = "re_Cav7CHtK_CGv6WwaPmJVqU7wfwF9Kc9R4"
+
 # --- Генерация 6-значного кода ---
 def generate_code():
     return str(random.randint(100000, 999999))
 
 # --- Отправка письма через Resend ---
 def send_code(email: str, code: str):
-    api_key = st.session_state.get("resend_api_key")
-
-    if not api_key:
-        st.error("❌ API ключ Resend не задан.")
-        return
-
     if email != "mkmatveev@gmail.com":
         st.warning("❗️На бесплатном тарифе Resend разрешена отправка только на mkmatveev@gmail.com")
         return
 
     headers = {
-        "Authorization": f"Bearer {api_key}",
+        "Authorization": f"Bearer {RESEND_API_KEY}",
         "Content-Type": "application/json"
     }
     data = {
@@ -43,37 +40,26 @@ def send_code(email: str, code: str):
         st.exception(e)
 
 # --- Авторизация по email ---
-# --- Авторизация по email ---
 def email_auth():
     st.subheader("🔐 Авторизация по email")
 
-    if "resend_api_key" not in st.session_state or not st.session_state["resend_api_key"]:
-        api_key = st.text_input("🔑 Введите Resend API Key", type="password")
-        if api_key:
-            st.session_state["resend_api_key"] = api_key
-            st.rerun()
-        st.stop()
+    if 'email_sent' not in st.session_state:
+        st.session_state.email_sent = False
 
-    if not st.session_state.get("authenticated"):
-        email = st.text_input("Введите email", value="mkmatveev@gmail.com")
+    email = st.text_input("Введите email", value="mkmatveev@gmail.com")
 
-        if 'email_sent' not in st.session_state:
-            st.session_state.email_sent = False
+    if not st.session_state.email_sent and st.button("📤 Отправить код") and email:
+        code = generate_code()
+        send_code(email, code)
+        st.session_state.verification_code = code
+        st.session_state.entered_email = email
+        st.session_state.email_sent = True
 
-        if not st.session_state.email_sent and st.button("📤 Отправить код") and email:
-            code = generate_code()
-            send_code(email, code)
-            st.session_state.verification_code = code
-            st.session_state.entered_email = email
-            st.session_state.email_sent = True
-
-        if st.session_state.email_sent:
-            code_input = st.text_input("Введите код из письма")
-            if code_input:
-                if code_input == st.session_state.verification_code:
-                    st.success("✅ Авторизация успешна")
-                    st.session_state.authenticated = True
-                    st.rerun()  # <--- ДОБАВЬ ЭТО
-                else:
-                    st.error("❌ Неверный код")
-        st.stop()
+    if st.session_state.email_sent:
+        code_input = st.text_input("Введите код из письма")
+        if code_input:
+            if code_input == st.session_state.verification_code:
+                st.success("✅ Авторизация успешна")
+                st.session_state.authenticated = True
+            else:
+                st.error("❌ Неверный код")
