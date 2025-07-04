@@ -20,3 +20,4 @@ def email_auth():
             else:
                 st.error("❌ Неверный код")
         st.stop()
+
